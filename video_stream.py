@@ -1,5 +1,10 @@
 import cv2
-from typing import Tuple, List
+from typing import Tuple, List, Final
+
+BOX_THICKNESS: Final[int] = 4
+TEXT_SIZE: Final[int] = 1
+TEXT_THICKNESS: Final[int] = 2
+CV_COLOR: Final[Tuple[int, int, int]] = (255, 255, 0)
 
 def load_face_detector() -> cv2.CascadeClassifier:
     """
@@ -11,30 +16,32 @@ def load_face_detector() -> cv2.CascadeClassifier:
     haar_cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
     return cv2.CascadeClassifier(haar_cascade_path)
 
-def draw_face_box(frame: cv2.Mat, face_box: Tuple[int, int, int, int], color: Tuple[int, int, int] = (0, 255, 0), thickness: int = 4) -> None:
+def draw_face_box(frame: cv2.Mat, face_box: Tuple[int, int, int, int]) -> None:
     """
     Draw a rectangle around a detected face and add coordinate labels.
 
     Args:
         frame (cv2.Mat): The input frame.
         face_box (Tuple[int, int, int, int]): The coordinates (x, y, w, h) of the detected face.
-        color (Tuple[int, int, int], optional): The color of the bounding box and label. Defaults to green.
-        thickness (int, optional): The thickness of the bounding box line. Defaults to 4.
     """
     x, y, w, h = face_box
 
     # Draw the bounding box
-    cv2.rectangle(frame, (x, y), (x + w, y + h), color, thickness)
+    cv2.rectangle(frame, (x, y), (x + w, y + h), CV_COLOR, BOX_THICKNESS)
 
-    # Calculate the coordinates of the bounding box
-    x_min, y_min = x, y
-    x_max, y_max = x + w, y + h
+    # Calculate corners of bounding box
+    top_left = (x, y)
+    top_right = (x + w, y)
+    bottom_left = (x, y + h)
+    bottom_right = (x + w, y + h)
 
-    # Create the label with coordinates
-    label = f"({x_min}, {y_min}), ({x_max}, {y_max})"
+    # Add labels for each corner
+    cv2.putText(frame, str(top_left), top_left, cv2.FONT_HERSHEY_SIMPLEX, TEXT_SIZE, CV_COLOR, TEXT_THICKNESS)
+    cv2.putText(frame, str(top_right), top_right, cv2.FONT_HERSHEY_SIMPLEX, TEXT_SIZE, CV_COLOR, TEXT_THICKNESS)
+    cv2.putText(frame, str(bottom_left), bottom_left, cv2.FONT_HERSHEY_SIMPLEX, TEXT_SIZE, CV_COLOR, TEXT_THICKNESS)
+    cv2.putText(frame, str(bottom_right), bottom_right, cv2.FONT_HERSHEY_SIMPLEX, TEXT_SIZE, CV_COLOR, TEXT_THICKNESS)
 
-    # Add the label to the bounding box
-    cv2.putText(frame, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
+
 
 def detect_faces(frame: cv2.Mat, face_detector: cv2.CascadeClassifier) -> List[Tuple[int, int, int, int]]:
     """
